@@ -2,66 +2,102 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Item;
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreItemRequest;
+use App\Http\Requests\UpdateItemRequest;
+use App\Services\ItemService;
+use Illuminate\Http\JsonResponse;
 
 class ItemController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Create a new controller instance.
+     *
+     * @param ItemService $itemService
      */
-    public function index()
+    public function __construct(
+        private readonly ItemService $itemService
+    ) {}
+
+    /**
+     * Display a listing of the resource.
+     *
+     * @return JsonResponse
+     */
+    public function index(): JsonResponse
     {
-        $items = Item::orderBy('created_at', 'desc')->get();
+        $items = $this->itemService->getAllItems();
+        
         return response()->json($items);
     }
 
     /**
      * Store a newly created resource in storage.
+     *
+     * @param StoreItemRequest $request
+     * @return JsonResponse
      */
-    public function store(Request $request)
+    public function store(StoreItemRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'quantity' => 'required|integer|min:0',
-        ]);
-
-        $item = Item::create($validated);
+        $item = $this->itemService->createItem($request->validated());
+        
         return response()->json($item, 201);
     }
 
     /**
      * Display the specified resource.
+     *
+     * @param int $id
+     * @return JsonResponse
      */
-    public function show(string $id)
+    public function show(int $id): JsonResponse
     {
-        $item = Item::findOrFail($id);
-        return response()->json($item);
+        try {
+            $item = $this->itemService->findItem($id);
+            
+            return response()->json($item);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'Item not found'
+            ], 404);
+        }
     }
 
     /**
      * Update the specified resource in storage.
+     *
+     * @param UpdateItemRequest $request
+     * @param int $id
+     * @return JsonResponse
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateItemRequest $request, int $id): JsonResponse
     {
-        $item = Item::findOrFail($id);
-        
-        $validated = $request->validate([
-            'name' => 'sometimes|required|string|max:255',
-            'quantity' => 'sometimes|required|integer|min:0',
-        ]);
-
-        $item->update($validated);
-        return response()->json($item);
+        try {
+            $item = $this->itemService->updateItem($id, $request->validated());
+            
+            return response()->json($item);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'Item not found'
+            ], 404);
+        }
     }
 
     /**
      * Remove the specified resource from storage.
+     *
+     * @param int $id
+     * @return JsonResponse
      */
-    public function destroy(string $id)
+    public function destroy(int $id): JsonResponse
     {
-        $item = Item::findOrFail($id);
-        $item->delete();
-        return response()->json(null, 204);
+        try {
+            $this->itemService->deleteItem($id);
+            
+            return response()->json(null, 204);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'Item not found'
+            ], 404);
+        }
     }
 }
