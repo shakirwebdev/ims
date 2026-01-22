@@ -1,261 +1,197 @@
 # IMS - Inventory Management System
 
-A full-stack application with Laravel backend, React frontend, and MySQL database, all containerized with Docker.
+A full-stack Inventory Management System with Laravel backend, React frontend, and MySQL database, all containerized with Docker.
+
+## Features
+
+- ✅ **Item Management**: Create, read, update, and delete inventory items
+- ✅ **Real-time Validation**: Form validation with required fields and constraints
+- ✅ **Health Monitoring**: System health check page
+- ✅ **Responsive UI**: Modern, mobile-friendly interface
+- ✅ **RESTful API**: Laravel backend with API endpoints
+- ✅ **Dockerized**: Easy deployment with Docker Compose
 
 ## Prerequisites
 
-- Docker Desktop installed on your machine
-- Git (optional, for version control)
+- Docker Desktop installed and running
+- That's it! Everything else is containerized.
+
+## Quick Start
+
+### 1. Clone or download this repository
+
+```bash
+git clone <repository-url>
+cd ims
+```
+
+### 2. Start the application
+
+```bash
+docker compose up -d
+```
+
+That's it! The application will:
+- Build all necessary containers
+- Set up the database
+- Start the Laravel backend
+- Start the React frontend
+
+### 3. Access the application
+
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:8001/api
+- **Health Check**: http://localhost:3000/health
+
+### 4. Stop the application
+
+```bash
+docker compose down
+```
 
 ## Project Structure
 
 ```
 ims/
-├── backend/              # Laravel application
-│   ├── Dockerfile
-│   ├── .env.example
-│   └── ...
-├── frontend/             # React application
-│   ├── Dockerfile
-│   ├── package.json
-│   ├── public/
-│   └── src/
+├── backend/              # Laravel 12 application
+│   ├── app/
+│   │   ├── Models/       # Item model
+│   │   └── Http/Controllers/  # API controllers
+│   ├── database/migrations/   # Database schema
+│   └── routes/api.php    # API routes
+├── frontend/             # React 18 application
+│   ├── src/
+│   │   ├── components/   # Inventory & HealthCheck components
+│   │   ├── App.js        # Main app with routing
+│   │   └── App.css       # Styling
+│   └── package.json
 ├── docker-compose.yml    # Docker orchestration
 └── README.md
 ```
 
-## Quick Start
+## API Endpoints
 
-### 1. Initial Setup - Create Laravel Project
+### Items
+- `GET /api/items` - Get all items
+- `POST /api/items` - Create new item
+  - Body: `{ "name": "string", "quantity": number }`
+- `GET /api/items/{id}` - Get single item
+- `PUT /api/items/{id}` - Update item
+  - Body: `{ "name": "string", "quantity": number }`
+- `DELETE /api/items/{id}` - Delete item
 
-First, you need to create a Laravel project in the backend directory:
+### System
+- `GET /api/health` - Health check endpoint
 
-```bash
-# Navigate to the backend directory
-cd backend
+## Ports Configuration
 
-# Create a new Laravel project (requires Composer)
-composer create-project laravel/laravel .
+The application uses these ports to avoid conflicts with Laravel Herd and DBngin:
 
-# Or if you don't have Composer installed locally, use Docker:
-docker run --rm -v $(pwd):/app composer create-project laravel/laravel .
+- **Frontend**: 3000
+- **Backend**: 8001
+- **MySQL**: 3307
 
-# Copy the environment file
-cp .env.example .env
-
-# Return to project root
-cd ..
-```
-
-### 2. Start the Application
-
-From the project root directory:
-
-```bash
-# Build and start all containers
-docker-compose up --build
-
-# Or run in detached mode (background)
-docker-compose up -d --build
-```
-
-### 3. Initialize Laravel
-
-After containers are running, initialize Laravel in a new terminal:
-
-```bash
-# Generate application key
-docker-compose exec backend php artisan key:generate
-
-# Run migrations
-docker-compose exec backend php artisan migrate
-
-# Create health check API route
-docker-compose exec backend php artisan make:controller HealthController
-```
-
-Add this to `backend/app/Http/Controllers/HealthController.php`:
-
-```php
-<?php
-
-namespace App\Http\Controllers;
-
-use Illuminate\Http\Request;
-
-class HealthController extends Controller
-{
-    public function check()
-    {
-        return response()->json([
-            'status' => 'ok',
-            'message' => 'Backend API is running',
-            'timestamp' => now()
-        ]);
-    }
-}
-```
-
-Add this to `backend/routes/api.php`:
-
-```php
-use App\Http\Controllers\HealthController;
-
-Route::get('/health', [HealthController::class, 'check']);
-```
-
-Enable CORS by running:
-
-```bash
-docker-compose exec backend php artisan config:publish cors
-```
-
-Update `backend/config/cors.php`:
-
-```php
-'paths' => ['api/*', 'sanctum/csrf-cookie'],
-'allowed_origins' => ['http://localhost:3000'],
-'allowed_methods' => ['*'],
-'allowed_headers' => ['*'],
-'exposed_headers' => [],
-'max_age' => 0,
-'supports_credentials' => true,
-```
-
-## Access the Application
-
-- **Frontend (React)**: http://localhost:3000
-- **Backend API (Laravel)**: http://localhost:8000
-- **MySQL Database**: localhost:3306
-  - Database: `ims_db`
-  - Username: `ims_user`
-  - Password: `password`
-  - Root Password: `root`
-
-## Common Docker Commands
+## Common Commands
 
 ```bash
 # Start containers
-docker-compose up
-
-# Start in background
-docker-compose up -d
+docker compose up -d
 
 # Stop containers
-docker-compose down
-
-# Rebuild containers
-docker-compose up --build
+docker compose down
 
 # View logs
-docker-compose logs
+docker compose logs -f
 
-# View logs for specific service
-docker-compose logs backend
-docker-compose logs frontend
+# View specific service logs
+docker compose logs backend
+docker compose logs frontend
 
-# Execute commands in backend container
-docker-compose exec backend php artisan migrate
-docker-compose exec backend php artisan make:model Product -m
-docker-compose exec backend composer install
+# Restart containers
+docker compose restart
 
-# Execute commands in frontend container
-docker-compose exec frontend npm install <package-name>
+# Execute Laravel commands
+docker compose exec backend php artisan migrate
+docker compose exec backend php artisan make:model ModelName -m
 
 # Access MySQL
-docker-compose exec mysql mysql -u ims_user -ppassword ims_db
+docker compose exec mysql mysql -u ims_user -ppassword ims_db
 
-# Remove all containers and volumes
-docker-compose down -v
+# Remove everything including data
+docker compose down -v
 ```
 
-## Development Workflow
+## Development
 
 ### Backend Development
 
-1. Laravel files are in the `backend/` directory
-2. Any changes to PHP files are automatically reflected
-3. Add API routes in `backend/routes/api.php`
-4. Create controllers: `docker-compose exec backend php artisan make:controller ControllerName`
-5. Create models: `docker-compose exec backend php artisan make:model ModelName -m`
+Laravel files are in the `backend/` directory. After making changes:
+
+```bash
+# Clear cache
+docker compose exec backend php artisan config:clear
+docker compose exec backend php artisan cache:clear
+
+# Run migrations
+docker compose exec backend php artisan migrate
+
+# Create new model
+docker compose exec backend php artisan make:model ModelName -m
+```
 
 ### Frontend Development
 
-1. React files are in the `frontend/src/` directory
-2. Changes are automatically hot-reloaded
-3. Add new packages: `docker-compose exec frontend npm install <package-name>`
-4. API calls should use `process.env.REACT_APP_API_URL` as the base URL
+React files are in `frontend/src/`. Changes are automatically hot-reloaded.
+
+```bash
+# Install new package
+docker compose exec frontend npm install package-name
+```
+
+## Database Connection
+
+If you need to connect external tools (e.g., DBeaver, TablePlus):
+
+- **Host**: localhost
+- **Port**: 3307
+- **Database**: ims_db
+- **Username**: ims_user
+- **Password**: password
 
 ## Troubleshooting
 
-### Port Already in Use
-
-If you get port conflicts:
-
+### Containers won't start
 ```bash
-# Change ports in docker-compose.yml
-# For example, change "3000:3000" to "3001:3000"
+# Make sure Docker Desktop is running
+# Check if ports are available
+lsof -i :3000 -i :8001 -i :3307
+
+# Remove old containers and restart
+docker compose down
+docker compose up -d --build
 ```
 
-### Permission Issues
-
-If you encounter permission issues:
-
+### Backend errors
 ```bash
-# Fix permissions for Laravel
-docker-compose exec backend chown -R www-data:www-data /var/www/storage
-docker-compose exec backend chmod -R 755 /var/www/storage
+# Check logs
+docker compose logs backend
+
+# Clear Laravel cache
+docker compose exec backend php artisan config:clear
+docker compose exec backend php artisan cache:clear
 ```
 
-### Database Connection Issues
+### Frontend can't connect to backend
+- Make sure all containers are running: `docker compose ps`
+- Check backend logs: `docker compose logs backend`
+- Verify API is responding: `curl http://localhost:8001/api/health`
 
-```bash
-# Restart MySQL container
-docker-compose restart mysql
+## Technologies Used
 
-# Check MySQL logs
-docker-compose logs mysql
-```
-
-### Clear Laravel Cache
-
-```bash
-docker-compose exec backend php artisan config:clear
-docker-compose exec backend php artisan cache:clear
-docker-compose exec backend php artisan route:clear
-```
-
-## Environment Variables
-
-### Backend (.env)
-
-Located in `backend/.env`:
-- `DB_HOST=mysql` (container name)
-- `DB_DATABASE=ims_db`
-- `DB_USERNAME=ims_user`
-- `DB_PASSWORD=password`
-
-### Frontend
-
-API URL is set in `docker-compose.yml`:
-- `REACT_APP_API_URL=http://localhost:8000/api`
-
-## Production Deployment
-
-For production deployment:
-
-1. Update `docker-compose.yml` environment to `production`
-2. Change database passwords and credentials
-3. Set `APP_DEBUG=false` in Laravel `.env`
-4. Build optimized React: `npm run build`
-5. Use proper web server (Nginx/Apache) instead of development servers
-
-## Contributing
-
-1. Create a new branch for your feature
-2. Make your changes
-3. Test thoroughly
-4. Submit a pull request
+- **Backend**: Laravel 12, PHP 8.4
+- **Frontend**: React 18, Axios, React Router
+- **Database**: MySQL 8.0
+- **Containerization**: Docker & Docker Compose
 
 ## License
 
