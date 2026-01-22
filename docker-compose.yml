@@ -1,0 +1,70 @@
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: ims_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ims_db
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_PASSWORD: password
+      MYSQL_USER: ims_user
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3307:3306"
+    networks:
+      - ims_network
+
+  # Laravel Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ims_backend
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./backend:/var/www
+      - ./backend/vendor:/var/www/vendor
+    ports:
+      - "8001:8000"
+    depends_on:
+      - mysql
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: ims_db
+      DB_USERNAME: ims_user
+      DB_PASSWORD: password
+    networks:
+      - ims_network
+
+  # React Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ims_frontend
+    restart: unless-stopped
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8001/api
+    depends_on:
+      - backend
+    networks:
+      - ims_network
+    stdin_open: true
+    tty: true
+
+networks:
+  ims_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
