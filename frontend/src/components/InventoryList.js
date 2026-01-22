@@ -3,6 +3,26 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
 import axios from 'axios';
+import {
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Button,
+  Typography,
+  Box,
+  CircularProgress,
+  Alert,
+  Chip,
+  IconButton,
+  Card,
+  CardContent,
+  Grid,
+} from '@mui/material';
+import { Delete as DeleteIcon, Add as AddIcon } from '@mui/icons-material';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8001/api';
 
@@ -40,8 +60,6 @@ function InventoryList() {
       cancelButtonColor: '#667eea',
       confirmButtonText: 'Yes, delete it!',
       cancelButtonText: 'Cancel',
-      background: 'rgba(255, 255, 255, 0.95)',
-      backdrop: 'rgba(102, 126, 234, 0.4)'
     });
 
     if (!result.isConfirmed) {
@@ -51,11 +69,11 @@ function InventoryList() {
     try {
       await axios.delete(`${API_URL}/items/${id}`);
       toast.success('Item deleted successfully!');
-      fetchItems(); // Refresh the list
+      fetchItems();
     } catch (error) {
       if (error.response?.status === 404) {
         toast.error('Item not found. It may have already been deleted.');
-        fetchItems(); // Refresh to sync with server
+        fetchItems();
       } else if (error.response?.status === 422) {
         toast.error(error.response?.data?.message || 'Invalid request');
       } else {
@@ -65,69 +83,136 @@ function InventoryList() {
   };
 
   if (loading) {
-    return <div className="loading">Loading inventory...</div>;
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+        <CircularProgress size={60} />
+      </Box>
+    );
   }
 
+  const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
+
   return (
-    <div className="inventory-list-container">
-      <div className="header-section">
-        <h2>Inventory Items</h2>
-        <button onClick={() => navigate('/add')} className="btn-add">
-          + Add New Item
-        </button>
-      </div>
+    <Box>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Typography variant="h4" component="h1" fontWeight="bold">
+          Inventory Items
+        </Typography>
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<AddIcon />}
+          onClick={() => navigate('/add')}
+          size="large"
+        >
+          Add New Item
+        </Button>
+      </Box>
 
-      {error && <div className="error-message">{error}</div>}
-
-      {items.length === 0 ? (
-        <div className="empty-state">
-          <p>No items in inventory.</p>
-          <button onClick={() => navigate('/add')} className="btn-submit">
-            Add Your First Item
-          </button>
-        </div>
-      ) : (
-        <div className="table-container">
-          <table className="items-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Quantity</th>
-                <th>Created At</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((item) => (
-                <tr key={item.id}>
-                  <td>{item.id}</td>
-                  <td>{item.name}</td>
-                  <td>
-                    <span className="quantity-badge">{item.quantity}</span>
-                  </td>
-                  <td>{new Date(item.created_at).toLocaleDateString()}</td>
-                  <td>
-                    <button
-                      onClick={() => handleDelete(item.id)}
-                      className="btn-delete-small"
-                      title="Delete item"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
       )}
 
-      <div className="summary">
-        <p>Total Items: <strong>{items.length}</strong></p>
-        <p>Total Quantity: <strong>{items.reduce((sum, item) => sum + item.quantity, 0)}</strong></p>
-      </div>
-    </div>
+      {items.length === 0 ? (
+        <Paper elevation={3} sx={{ p: 6, textAlign: 'center' }}>
+          <Typography variant="h6" color="text.secondary" gutterBottom>
+            No items in inventory
+          </Typography>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={() => navigate('/add')}
+            sx={{ mt: 2 }}
+          >
+            Add Your First Item
+          </Button>
+        </Paper>
+      ) : (
+        <>
+          <TableContainer component={Paper} elevation={3}>
+            <Table>
+              <TableHead>
+                <TableRow sx={{ bgcolor: 'primary.main' }}>
+                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>ID</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Name</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Quantity</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Created At</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }} align="center">
+                    Actions
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {items.map((item) => (
+                  <TableRow
+                    key={item.id}
+                    hover
+                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                  >
+                    <TableCell>{item.id}</TableCell>
+                    <TableCell>
+                      <Typography variant="body1" fontWeight="medium">
+                        {item.name}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={item.quantity}
+                        color="primary"
+                        variant="outlined"
+                        sx={{ fontWeight: 'bold' }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      {new Date(item.created_at).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell align="center">
+                      <IconButton
+                        color="error"
+                        onClick={() => handleDelete(item.id)}
+                        title="Delete item"
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+
+          <Grid container spacing={2} sx={{ mt: 2 }}>
+            <Grid item xs={12} sm={6}>
+              <Card elevation={2}>
+                <CardContent>
+                  <Typography variant="h6" color="text.secondary">
+                    Total Items
+                  </Typography>
+                  <Typography variant="h3" color="primary" fontWeight="bold">
+                    {items.length}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <Card elevation={2}>
+                <CardContent>
+                  <Typography variant="h6" color="text.secondary">
+                    Total Quantity
+                  </Typography>
+                  <Typography variant="h3" color="secondary" fontWeight="bold">
+                    {totalQuantity}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+        </>
+      )}
+    </Box>
   );
 }
 

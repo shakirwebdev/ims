@@ -2,6 +2,16 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import axios from 'axios';
+import {
+  Paper,
+  TextField,
+  Button,
+  Typography,
+  Box,
+  Stack,
+  Grid,
+} from '@mui/material';
+import { Save as SaveIcon, Cancel as CancelIcon } from '@mui/icons-material';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8001/api';
 
@@ -14,7 +24,6 @@ function AddItem() {
   const validateForm = () => {
     const newErrors = {};
 
-    // Name validation
     if (!formData.name.trim()) {
       newErrors.name = 'Item name is required';
     } else if (formData.name.trim().length < 2) {
@@ -23,7 +32,6 @@ function AddItem() {
       newErrors.name = 'Item name must not exceed 255 characters';
     }
 
-    // Quantity validation
     if (formData.quantity === '') {
       newErrors.quantity = 'Quantity is required';
     } else if (isNaN(formData.quantity)) {
@@ -41,7 +49,6 @@ function AddItem() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Client-side validation
     if (!validateForm()) {
       return;
     }
@@ -55,15 +62,12 @@ function AddItem() {
       });
 
       toast.success('Item created successfully!');
-      // Redirect to inventory list on success
       navigate('/');
     } catch (error) {
       if (error.response?.status === 422 && error.response?.data?.errors) {
-        // Server validation errors - convert array format to string
         const serverErrors = {};
         Object.keys(error.response.data.errors).forEach(key => {
           const errorMessages = error.response.data.errors[key];
-          // Take the first error message if it's an array
           serverErrors[key] = Array.isArray(errorMessages) ? errorMessages[0] : errorMessages;
         });
         setErrors(serverErrors);
@@ -80,80 +84,95 @@ function AddItem() {
 
   const handleInputChange = (field, value) => {
     setFormData({ ...formData, [field]: value });
-    // Clear error for this field when user starts typing
     if (errors[field]) {
       setErrors({ ...errors, [field]: '' });
     }
   };
 
   return (
-    <div className="add-item-container">
-      <div className="form-card">
-        <h2>Add New Item</h2>
-        <form onSubmit={handleSubmit} noValidate>
-          <div className="form-group">
-            <label htmlFor="name">
-              Item Name <span className="required">*</span>
-            </label>
-            <input
-              type="text"
-              id="name"
-              value={formData.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
-              placeholder="Enter item name"
-              className={errors.name ? 'input-error' : ''}
-              disabled={submitting}
-            />
-            {errors.name && <span className="error-text">{errors.name}</span>}
-          </div>
+    <Box>
+      <Typography variant="h4" component="h1" fontWeight="bold" mb={3}>
+        Add New Item
+      </Typography>
 
-          <div className="form-group">
-            <label htmlFor="quantity">
-              Quantity <span className="required">*</span>
-            </label>
-            <input
-              type="number"
-              id="quantity"
-              value={formData.quantity}
-              onChange={(e) => handleInputChange('quantity', e.target.value)}
-              placeholder="Enter quantity"
-              min="0"
-              step="1"
-              className={errors.quantity ? 'input-error' : ''}
-              disabled={submitting}
-            />
-            {errors.quantity && <span className="error-text">{errors.quantity}</span>}
-          </div>
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={8}>
+          <Paper elevation={3} sx={{ p: 4 }}>
+            <form onSubmit={handleSubmit} noValidate>
+              <Stack spacing={3}>
+                <TextField
+                  label="Item Name"
+                  variant="outlined"
+                  fullWidth
+                  required
+                  value={formData.name}
+                  onChange={(e) => handleInputChange('name', e.target.value)}
+                  error={!!errors.name}
+                  helperText={errors.name}
+                  disabled={submitting}
+                  placeholder="Enter item name"
+                />
 
-          <div className="form-buttons">
-            <button
-              type="submit"
-              className="btn-submit"
-              disabled={submitting}
-            >
-              {submitting ? 'Creating...' : 'Create Item'}
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate('/')}
-              className="btn-cancel"
-              disabled={submitting}
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      </div>
+                <TextField
+                  label="Quantity"
+                  variant="outlined"
+                  fullWidth
+                  required
+                  type="number"
+                  value={formData.quantity}
+                  onChange={(e) => handleInputChange('quantity', e.target.value)}
+                  error={!!errors.quantity}
+                  helperText={errors.quantity}
+                  disabled={submitting}
+                  placeholder="Enter quantity"
+                  inputProps={{ min: 0, step: 1 }}
+                />
 
-      <div className="help-text">
-        <h3>Instructions</h3>
-        <ul>
-          <li>Item name is required and must be between 2-255 characters</li>
-          <li>Quantity must be a non-negative whole number</li>
-          <li>All fields are validated before submission</li>
-        </ul>
-      </div>
-    </div>
+                <Stack direction="row" spacing={2}>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    color="primary"
+                    size="large"
+                    startIcon={<SaveIcon />}
+                    disabled={submitting}
+                    fullWidth
+                  >
+                    {submitting ? 'Creating...' : 'Create Item'}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outlined"
+                    color="secondary"
+                    size="large"
+                    startIcon={<CancelIcon />}
+                    onClick={() => navigate('/')}
+                    disabled={submitting}
+                    fullWidth
+                  >
+                    Cancel
+                  </Button>
+                </Stack>
+              </Stack>
+            </form>
+          </Paper>
+        </Grid>
+
+        <Grid item xs={12} md={4}>
+          <Paper elevation={2} sx={{ p: 3, bgcolor: 'primary.light', color: 'white' }}>
+            <Typography variant="h6" gutterBottom fontWeight="bold">
+              📝 Instructions
+            </Typography>
+            <Typography variant="body2" component="ul" sx={{ pl: 2 }}>
+              <li>Item name is required and must be between 2-255 characters</li>
+              <li>Quantity must be a non-negative whole number</li>
+              <li>All fields are validated before submission</li>
+              <li>Server-side validation will catch any additional issues</li>
+            </Typography>
+          </Paper>
+        </Grid>
+      </Grid>
+    </Box>
   );
 }
 

@@ -7,9 +7,11 @@ A full-stack Inventory Management System with Laravel backend, React frontend, a
 - ✅ **Item Management**: Create, read, update, and delete inventory items
 - ✅ **Real-time Validation**: Form validation with required fields and constraints
 - ✅ **Health Monitoring**: System health check page
-- ✅ **Responsive UI**: Modern, mobile-friendly interface
+- ✅ **Responsive UI**: Modern, mobile-friendly interface with Material-UI
+- ✅ **Professional UI Kit**: Built with Material-UI (MUI) component library
 - ✅ **RESTful API**: Laravel backend with API endpoints
 - ✅ **Dockerized**: Easy deployment with Docker Compose
+- ✅ **SOLID Principles**: Clean, maintainable code architecture
 
 ## Prerequisites
 
@@ -67,13 +69,36 @@ ims/
 │   └── routes/api.php    # API routes
 ├── frontend/             # React 18 application
 │   ├── src/
-│   │   ├── components/   # Inventory & HealthCheck components
-│   │   ├── App.js        # Main app with routing
-│   │   └── App.css       # Styling
+│   │   ├── components/   # Material-UI components
+│   │   ├── App.js        # Main app with MUI theme
+│   │   └── App.css       # Additional styling
 │   └── package.json
 ├── docker-compose.yml    # Docker orchestration
+├── setup.sh              # Automated setup script
 └── README.md
 ```
+
+## Technology Stack
+
+### Backend
+- **Framework**: Laravel 12
+- **Language**: PHP 8.4
+- **Architecture**: Service Layer Pattern with SOLID principles
+- **Validation**: Custom Form Requests
+- **API**: RESTful with proper HTTP status codes
+
+### Frontend
+- **Framework**: React 18
+- **UI Library**: Material-UI (MUI) v7
+- **Routing**: React Router v6
+- **HTTP Client**: Axios
+- **Notifications**: React Toastify + SweetAlert2
+- **State Management**: React Hooks
+
+### Infrastructure
+- **Containerization**: Docker & Docker Compose
+- **Database**: MySQL 8.0
+- **Web Server**: PHP Built-in Server (Development)
 
 ## API Endpoints
 
