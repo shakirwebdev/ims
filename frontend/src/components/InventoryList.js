@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import Swal from 'sweetalert2';
 import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8001/api';
@@ -22,30 +24,43 @@ function InventoryList() {
       setError(null);
     } catch (error) {
       setError('Failed to fetch items');
-      console.error('Error fetching items:', error);
+      toast.error('Failed to load inventory items');
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this item?')) {
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#f44336',
+      cancelButtonColor: '#667eea',
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'Cancel',
+      background: 'rgba(255, 255, 255, 0.95)',
+      backdrop: 'rgba(102, 126, 234, 0.4)'
+    });
+
+    if (!result.isConfirmed) {
       return;
     }
 
     try {
       await axios.delete(`${API_URL}/items/${id}`);
+      toast.success('Item deleted successfully!');
       fetchItems(); // Refresh the list
     } catch (error) {
       if (error.response?.status === 404) {
-        alert('Error: Item not found. It may have already been deleted.');
+        toast.error('Item not found. It may have already been deleted.');
         fetchItems(); // Refresh to sync with server
       } else if (error.response?.status === 422) {
-        alert('Validation error: ' + (error.response?.data?.message || 'Invalid request'));
+        toast.error(error.response?.data?.message || 'Invalid request');
       } else {
-        alert('Error deleting item: ' + (error.response?.data?.message || error.message));
+        toast.error(error.response?.data?.message || error.message || 'Failed to delete item');
       }
-      console.error('Error deleting item:', error);
     }
   };
 

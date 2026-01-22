@@ -18,32 +18,38 @@ A full-stack Inventory Management System with Laravel backend, React frontend, a
 
 ## Quick Start
 
-### 1. Clone or download this repository
+### Option 1: Automated Setup (Recommended)
 
 ```bash
 git clone <repository-url>
 cd ims
+./setup.sh
 ```
 
-### 2. Start the application
+The setup script will:
+- Check if Docker is running
+- Build all containers
+- Install dependencies automatically
+- Set up the database
+- Start all services
+
+### Option 2: Manual Setup
 
 ```bash
-docker compose up -d
+git clone <repository-url>
+cd ims
+docker compose up -d --build
 ```
 
-That's it! The application will:
-- Build all necessary containers
-- Set up the database
-- Start the Laravel backend
-- Start the React frontend
+Wait about 30 seconds for all services to start, then:
 
-### 3. Access the application
+### Access the Application
 
 - **Frontend**: http://localhost:3000
 - **Backend API**: http://localhost:8001/api
 - **Health Check**: http://localhost:3000/health
 
-### 4. Stop the application
+### Stop the Application
 
 ```bash
 docker compose down

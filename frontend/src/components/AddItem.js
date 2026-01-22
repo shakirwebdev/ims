@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8001/api';
@@ -53,6 +54,7 @@ function AddItem() {
         quantity: parseInt(formData.quantity)
       });
 
+      toast.success('Item created successfully!');
       // Redirect to inventory list on success
       navigate('/');
     } catch (error) {
@@ -65,12 +67,12 @@ function AddItem() {
           serverErrors[key] = Array.isArray(errorMessages) ? errorMessages[0] : errorMessages;
         });
         setErrors(serverErrors);
+        toast.error('Please fix the validation errors');
       } else if (error.response?.status === 404) {
-        alert('Error: Resource not found');
+        toast.error('Resource not found');
       } else {
-        alert('Error creating item: ' + (error.response?.data?.message || error.message));
+        toast.error(error.response?.data?.message || error.message || 'Failed to create item');
       }
-      console.error('Error creating item:', error);
     } finally {
       setSubmitting(false);
     }
